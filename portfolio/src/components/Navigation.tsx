@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
+import { useIsAdmin } from '../hooks/useIsAdmin'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function Navigation() {
   const pathname = usePathname()
@@ -43,6 +45,10 @@ export default function Navigation() {
                 {item.label}
               </Link>
             ))}
+            {/* Admin status indicator */}
+            {useIsAdmin() && (
+              <span className="ml-4 px-3 py-1 bg-green-100 text-green-800 text-xs rounded-full font-semibold border border-green-300">Admin</span>
+            )}
           </div>
 
           {/* Mobile menu button */}
