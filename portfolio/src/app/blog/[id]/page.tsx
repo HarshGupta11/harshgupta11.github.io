@@ -20,6 +20,8 @@ interface BlogPost {
   created_at: string
   author_email: string
   thumbnail?: string
+  category_id?: string
+  subcategory_id?: string
 }
 
 const THUMBNAILS = [
@@ -114,7 +116,7 @@ export default function BlogPostPage() {
       {/* Edit Modal (UI only) */}
       {showEdit && post && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-4xl relative">
+          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-4xl max-w-[95vw] max-h-[90vh] overflow-x-auto overflow-y-auto relative">
             <button
               className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-2xl"
               onClick={() => setShowEdit(false)}
@@ -146,6 +148,24 @@ function EditBlogForm({ post, onClose }: { post: BlogPost, onClose: () => void }
   const [thumbError, setThumbError] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  // Category & Subcategory state
+  const [categories, setCategories] = useState<{ id: string, name: string, is_lifestyle: boolean }[]>([]);
+  const [subcategories, setSubcategories] = useState<{ id: string, category_id: string, name: string }[]>([]);
+  const [categoryId, setCategoryId] = useState(post.category_id || '');
+  const [subcategoryId, setSubcategoryId] = useState(post.subcategory_id || '');
+
+  useEffect(() => {
+    // Fetch categories and subcategories from Supabase
+    (async () => {
+      const { data: cats } = await supabase.from('categories').select('*').order('name');
+      setCategories(cats || []);
+      const { data: subs } = await supabase.from('subcategories').select('*').order('name');
+      setSubcategories(subs || []);
+    })();
+  }, []);
+
+  // Filter subcategories for selected category
+  const filteredSubcategories = subcategories.filter(s => s.category_id === categoryId);
 
   const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -175,6 +195,11 @@ function EditBlogForm({ post, onClose }: { post: BlogPost, onClose: () => void }
     e.preventDefault()
     setLoading(true)
     setError('')
+    if (!categoryId) {
+      setError('Please select a category.');
+      setLoading(false);
+      return;
+    }
     const { error: updateError } = await supabase.from('blog_posts').update({
       title,
       excerpt,
@@ -182,6 +207,8 @@ function EditBlogForm({ post, onClose }: { post: BlogPost, onClose: () => void }
       tags: tags.split(',').map((t: string) => t.trim()).filter(Boolean),
       featured,
       thumbnail: thumbnail || DEFAULT_THUMBNAIL,
+      category_id: categoryId,
+      subcategory_id: subcategoryId || null,
     }).eq('id', post.id)
     if (updateError) {
       setError(updateError.message)
@@ -218,6 +245,35 @@ function EditBlogForm({ post, onClose }: { post: BlogPost, onClose: () => void }
         <label className="block text-sm font-medium text-gray-900">Content</label>
         <MarkdownEditor value={content} onChange={setContent} />
       </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-900">Category</label>
+        <select
+          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={categoryId}
+          onChange={e => { setCategoryId(e.target.value); setSubcategoryId(''); }}
+          required
+        >
+          <option value="">Select category</option>
+          {categories.map(cat => (
+            <option key={cat.id} value={cat.id}>{cat.name}</option>
+          ))}
+        </select>
+      </div>
+      {filteredSubcategories.length > 0 && (
+        <div>
+          <label className="block text-sm font-medium text-gray-900">Subcategory</label>
+          <select
+            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={subcategoryId}
+            onChange={e => setSubcategoryId(e.target.value)}
+          >
+            <option value="">Select subcategory</option>
+            {filteredSubcategories.map(sub => (
+              <option key={sub.id} value={sub.id}>{sub.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-1">Thumbnail (optional)</label>
         <div className="flex flex-wrap gap-4 mb-2">

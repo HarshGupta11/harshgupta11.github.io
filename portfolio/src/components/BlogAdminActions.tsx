@@ -1,7 +1,7 @@
 'use client'
 
 import { useIsAdmin } from '@/hooks/useIsAdmin'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import dynamic from 'next/dynamic'
@@ -32,8 +32,30 @@ export default function BlogAdminActions({ onBlogCreated }: { onBlogCreated?: ()
   const [thumbnail, setThumbnail] = useState('');
   const [uploadingThumb, setUploadingThumb] = useState(false);
   const [thumbError, setThumbError] = useState('');
+  // Category & Subcategory state
+  const [categories, setCategories] = useState<{ id: string, name: string, is_lifestyle: boolean }[]>([]);
+  const [subcategories, setSubcategories] = useState<{ id: string, category_id: string, name: string }[]>([]);
+  const [categoryId, setCategoryId] = useState('');
+  const [subcategoryId, setSubcategoryId] = useState('');
 
   if (!isAdmin) return null
+
+  useEffect(() => {
+    if (isOpen) {
+      // Fetch categories and subcategories from Supabase
+      (async () => {
+        const { data: cats } = await supabase.from('categories').select('*').order('name');
+        setCategories(cats || []);
+        const { data: subs } = await supabase.from('subcategories').select('*').order('name');
+        setSubcategories(subs || []);
+      })();
+      setCategoryId('');
+      setSubcategoryId('');
+    }
+  }, [isOpen]);
+
+  // Filter subcategories for selected category
+  const filteredSubcategories = subcategories.filter(s => s.category_id === categoryId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,6 +67,11 @@ export default function BlogAdminActions({ onBlogCreated }: { onBlogCreated?: ()
       setLoading(false)
       return
     }
+    if (!categoryId) {
+      setError('Please select a category.');
+      setLoading(false);
+      return;
+    }
     const { error: insertError } = await supabase.from('blog_posts').insert([
       {
         title,
@@ -54,6 +81,8 @@ export default function BlogAdminActions({ onBlogCreated }: { onBlogCreated?: ()
         featured,
         author_email: user.email,
         thumbnail: thumbnail || DEFAULT_THUMBNAIL,
+        category_id: categoryId,
+        subcategory_id: subcategoryId || null,
       }
     ])
     if (insertError) {
@@ -70,6 +99,8 @@ export default function BlogAdminActions({ onBlogCreated }: { onBlogCreated?: ()
     setFeatured(false)
     setIsOpen(false)
     setThumbnail('');
+    setCategoryId('');
+    setSubcategoryId('');
     if (onBlogCreated) onBlogCreated();
   }
 
@@ -112,7 +143,7 @@ export default function BlogAdminActions({ onBlogCreated }: { onBlogCreated?: ()
       </button>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-4xl relative">
+          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-4xl max-w-[95vw] max-h-[90vh] overflow-x-auto overflow-y-auto relative">
             <button
               className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-2xl"
               onClick={() => setIsOpen(false)}
@@ -168,6 +199,35 @@ export default function BlogAdminActions({ onBlogCreated }: { onBlogCreated?: ()
                 />
                 <label htmlFor="featured" className="text-sm text-gray-700">Featured</label>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Category</label>
+                <select
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={categoryId}
+                  onChange={e => { setCategoryId(e.target.value); setSubcategoryId(''); }}
+                  required
+                >
+                  <option value="">Select category</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+              {filteredSubcategories.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Subcategory</label>
+                  <select
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={subcategoryId}
+                    onChange={e => setSubcategoryId(e.target.value)}
+                  >
+                    <option value="">Select subcategory</option>
+                    {filteredSubcategories.map(sub => (
+                      <option key={sub.id} value={sub.id}>{sub.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Thumbnail (optional)</label>
                 <div className="flex flex-wrap gap-4 mb-2">
