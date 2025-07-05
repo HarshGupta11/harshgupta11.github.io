@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { createPortal } from 'react-dom'
 
 interface AuthModalProps {
   isOpen: boolean
@@ -63,9 +64,10 @@ export default function AuthModal({ isOpen, onClose, mode }: AuthModalProps) {
 
   if (!isOpen) return null
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4">
+  if (typeof window === 'undefined' || !document.body) return null;
+  return createPortal(
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] overflow-y-auto">
+      <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4 mt-20">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900">
             {mode === 'signin' ? 'Sign In' : 'Sign Up'}
@@ -175,6 +177,7 @@ export default function AuthModal({ isOpen, onClose, mode }: AuthModalProps) {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 } 
