@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { useIsAdmin } from '../hooks/useIsAdmin'
+import AuthButton from './AuthButton'
 
 export default function Navigation() {
   const pathname = usePathname()
@@ -48,6 +49,10 @@ export default function Navigation() {
             {useIsAdmin() && (
               <span className="ml-4 px-3 py-1 bg-green-100 text-green-800 text-xs rounded-full font-semibold border border-green-300">Admin</span>
             )}
+            {/* Sign In Button */}
+            <div className="ml-4">
+              <AuthButton />
+            </div>
           </div>
 
           {/* Mobile menu button */}
@@ -98,6 +103,10 @@ export default function Navigation() {
                   {item.label}
                 </Link>
               ))}
+              {/* Mobile Sign In Button */}
+              <div className="px-3 py-2">
+                <AuthButton />
+              </div>
             </div>
           </div>
         )}
