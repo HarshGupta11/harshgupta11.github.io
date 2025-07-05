@@ -30,36 +30,37 @@ export default function Comments({ blog_post_id, titleClassName }: CommentsProps
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState('')
 
-  const fetchComments = async () => {
-    setLoading(true)
-    const { data, error } = await supabase
-      .from('comments')
-      .select('*')
-      .eq('blog_post_id', blog_post_id)
-      .order('created_at', { ascending: true })
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-      return
-    }
-    setComments(data || [])
-    setLoading(false)
-  }
-
   useEffect(() => {
-    let subscription: RealtimeChannel | null = null
-    if (blog_post_id) fetchComments()
+    let subscription: RealtimeChannel | null = null;
+
+    const fetchComments = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('comments')
+        .select('*')
+        .eq('blog_post_id', blog_post_id)
+        .order('created_at', { ascending: true });
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+        return;
+      }
+      setComments(data || []);
+      setLoading(false);
+    };
+
+    if (blog_post_id) fetchComments();
     // Real-time subscription
     subscription = supabase
       .channel('comments_changes_' + blog_post_id)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'comments', filter: `blog_post_id=eq.${blog_post_id}` }, () => {
-        fetchComments()
+        fetchComments();
       })
-      .subscribe()
+      .subscribe();
     return () => {
-      if (subscription) supabase.removeChannel(subscription)
-    }
-  }, [blog_post_id, fetchComments])
+      if (subscription) supabase.removeChannel(subscription);
+    };
+  }, [blog_post_id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -89,7 +90,6 @@ export default function Comments({ blog_post_id, titleClassName }: CommentsProps
     }
     setNewComment('')
     setSubmitting(false)
-    fetchComments() // Auto-refresh after add
   }
 
   const handleDelete = async (id: string) => {
@@ -102,7 +102,6 @@ export default function Comments({ blog_post_id, titleClassName }: CommentsProps
       return
     }
     setDeletingId(null)
-    fetchComments() // Auto-refresh after delete
   }
 
   return (
