@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 
 interface CommentsProps {
   blog_post_id: string
@@ -46,19 +47,19 @@ export default function Comments({ blog_post_id, titleClassName }: CommentsProps
   }
 
   useEffect(() => {
-    let subscription: any
+    let subscription: RealtimeChannel | null = null
     if (blog_post_id) fetchComments()
     // Real-time subscription
     subscription = supabase
       .channel('comments_changes_' + blog_post_id)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'comments', filter: `blog_post_id=eq.${blog_post_id}` }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'comments', filter: `blog_post_id=eq.${blog_post_id}` }, () => {
         fetchComments()
       })
       .subscribe()
     return () => {
       if (subscription) supabase.removeChannel(subscription)
     }
-  }, [blog_post_id])
+  }, [blog_post_id, fetchComments])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

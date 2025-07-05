@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import AuthModal from './AuthModal'
+import Image from 'next/image'
 
 export default function AuthButton() {
   const { user, signOut } = useAuth()
@@ -28,9 +29,11 @@ export default function AuthButton() {
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
           {user.user_metadata?.avatar_url ? (
-            <img
+            <Image
               src={user.user_metadata.avatar_url}
               alt="Profile"
+              width={32}
+              height={32}
               className="w-8 h-8 rounded-full"
             />
           ) : (

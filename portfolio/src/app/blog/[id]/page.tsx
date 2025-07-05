@@ -116,7 +116,7 @@ export default function BlogPostPage() {
   )
 }
 
-function EditBlogForm({ post, onClose }: { post: any, onClose: () => void }) {
+function EditBlogForm({ post, onClose }: { post: BlogPost, onClose: () => void }) {
   const [title, setTitle] = useState(post.title)
   const [excerpt, setExcerpt] = useState(post.excerpt)
   const [content, setContent] = useState(post.content)

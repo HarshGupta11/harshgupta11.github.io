@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Image from 'next/image'
 
 export default function Home() {
   const sections = [
@@ -43,7 +42,7 @@ export default function Home() {
               <span className="text-4xl font-bold text-white">HG</span>
             </div>
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Hi, I'm <span className="text-blue-600">Harsh Gupta</span>
+              Hi, I&apos;m <span className="text-blue-600">Harsh Gupta</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
               Software Engineer at Amazon, passionate about technology, travel, and creating meaningful experiences. 
@@ -95,12 +94,12 @@ export default function Home() {
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-6">About Me</h2>
               <p className="text-lg text-gray-600 mb-6">
-                I'm a Software Engineer at Amazon, passionate about building scalable systems and creating 
+                I&apos;m a Software Engineer at Amazon, passionate about building scalable systems and creating 
                 innovative solutions. With expertise in cloud technologies, distributed systems, and full-stack development, 
                 I love tackling complex challenges and learning new technologies.
               </p>
               <p className="text-lg text-gray-600 mb-6">
-                Beyond technology, I'm an avid traveler who has explored over 15 countries across 4 continents. 
+                Beyond technology, I&apos;m an avid traveler who has explored over 15 countries across 4 continents. 
                 From the bustling streets of Tokyo to the ancient ruins of Rome, I believe travel broadens perspectives 
                 and fuels creativity in both life and work.
               </p>

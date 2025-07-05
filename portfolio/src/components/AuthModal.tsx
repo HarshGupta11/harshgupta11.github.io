@@ -36,8 +36,8 @@ export default function AuthModal({ isOpen, onClose, mode }: AuthModalProps) {
         if (error) throw error
       }
       onClose()
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setLoading(false)
     }
@@ -55,8 +55,8 @@ export default function AuthModal({ isOpen, onClose, mode }: AuthModalProps) {
         }
       })
       if (error) throw error
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'An error occurred')
       setLoading(false)
     }
   }
@@ -154,7 +154,7 @@ export default function AuthModal({ isOpen, onClose, mode }: AuthModalProps) {
         <div className="mt-6 text-center text-sm text-gray-600">
           {mode === 'signin' ? (
             <p>
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <button
                 onClick={() => window.location.href = '/auth/signup'}
                 className="text-blue-600 hover:text-blue-700 font-medium"

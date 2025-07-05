@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 
 interface BlogPost {
   id: string
@@ -25,7 +26,7 @@ export default function BlogList() {
   const [page, setPage] = useState(1)
 
   useEffect(() => {
-    let subscription: any
+    let subscription: RealtimeChannel | null = null
     const fetchPosts = async () => {
       setLoading(true)
       const { data, error } = await supabase
@@ -45,7 +46,7 @@ export default function BlogList() {
     // Real-time subscription
     subscription = supabase
       .channel('blog_posts_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'blog_posts' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'blog_posts' }, () => {
         fetchPosts()
       })
       .subscribe()

@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { useIsAdmin } from '../hooks/useIsAdmin'
-import { useAuth } from '../contexts/AuthContext'
 
 export default function Navigation() {
   const pathname = usePathname()

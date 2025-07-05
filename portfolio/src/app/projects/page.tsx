@@ -74,7 +74,7 @@ export default function ProjectsPage() {
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Projects</h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               A collection of software projects, system designs, and technical solutions 
-              I've built throughout my career as a software engineer.
+              I&apos;ve built throughout my career as a software engineer.
             </p>
           </div>
         </div>
