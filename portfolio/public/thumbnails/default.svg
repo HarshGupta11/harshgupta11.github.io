@@ -1,0 +1,9 @@
+<svg width="120" height="80" xmlns="http://www.w3.org/2000/svg">
+  <rect width="120" height="80" fill="#e5e7eb"/>
+  <g>
+    <circle cx="60" cy="40" r="18" fill="#d1d5db"/>
+    <rect x="50" y="35" width="20" height="10" rx="2" fill="#9ca3af"/>
+    <rect x="56" y="38" width="8" height="4" rx="1" fill="#fff"/>
+  </g>
+  <text x="60" y="75" font-size="12" text-anchor="middle" fill="#9ca3af" font-family="Arial, sans-serif">Default</text>
+</svg> 

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import type { RealtimeChannel } from '@supabase/supabase-js'
+import Image from 'next/image'
 
 interface BlogPost {
   id: string
@@ -14,11 +15,12 @@ interface BlogPost {
   featured: boolean
   created_at: string
   author_email: string
+  thumbnail?: string
 }
 
 const POSTS_PER_PAGE = 6
 
-export default function BlogList() {
+export default function BlogList({ refreshFlag }: { refreshFlag?: number }) {
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -54,7 +56,7 @@ export default function BlogList() {
     return () => {
       if (subscription) supabase.removeChannel(subscription)
     }
-  }, [])
+  }, [refreshFlag])
 
   // Filter by search
   const filteredPosts = posts.filter(post => {
@@ -144,11 +146,17 @@ export default function BlogList() {
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
         {regularPosts.map((post) => (
           <article key={post.id} className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-            <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-              <div className="text-4xl">
-                {post.tags?.includes('Travel') ? '✈️' : 
-                 post.tags?.includes('Technology') ? '💻' : '📝'}
-              </div>
+            <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative">
+              {post.thumbnail && (
+                <Image
+                  src={post.thumbnail}
+                  alt={post.title + ' thumbnail'}
+                  width={120}
+                  height={80}
+                  className="object-contain rounded-md border border-gray-200 bg-white"
+                  style={{ maxWidth: '100%', maxHeight: '100%' }}
+                />
+              )}
             </div>
             <div className="p-6">
               <div className="flex items-center gap-2 mb-3">

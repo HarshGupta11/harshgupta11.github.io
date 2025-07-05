@@ -5,6 +5,10 @@ import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import Comments from '@/components/Comments'
+import dynamic from 'next/dynamic'
+import MarkdownPreview from '@uiw/react-markdown-preview'
+import Image from 'next/image'
+const MarkdownEditor = dynamic(() => import('@/components/MarkdownEditor'), { ssr: false })
 
 interface BlogPost {
   id: string
@@ -15,7 +19,15 @@ interface BlogPost {
   featured: boolean
   created_at: string
   author_email: string
+  thumbnail?: string
 }
+
+const THUMBNAILS = [
+  '/thumbnails/tech.svg',
+  '/thumbnails/travel.svg',
+  '/thumbnails/lifestyle.svg',
+];
+const DEFAULT_THUMBNAIL = '/thumbnails/default.svg';
 
 export default function BlogPostPage() {
   const { id } = useParams<{ id: string }>()
@@ -81,7 +93,14 @@ export default function BlogPostPage() {
           <span key={tag} className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">{tag}</span>
         ))}
       </div>
-      <div className="prose prose-lg max-w-none text-gray-900 mb-8 whitespace-pre-line">{post.content}</div>
+      <div className="mb-8">
+        <MarkdownPreview
+          source={post.content}
+          className="prose prose-lg max-w-none text-gray-900"
+          style={{ background: 'white' }}
+          wrapperElement={{ 'data-color-mode': 'light' }}
+        />
+      </div>
       {/* Admin actions placeholder */}
       {isAdmin && (
         <div className="mb-8 flex gap-4">
@@ -95,7 +114,7 @@ export default function BlogPostPage() {
       {/* Edit Modal (UI only) */}
       {showEdit && post && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-lg relative">
+          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-4xl relative">
             <button
               className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-2xl"
               onClick={() => setShowEdit(false)}
@@ -122,8 +141,34 @@ function EditBlogForm({ post, onClose }: { post: BlogPost, onClose: () => void }
   const [content, setContent] = useState(post.content)
   const [tags, setTags] = useState(post.tags?.join(', ') || '')
   const [featured, setFeatured] = useState(post.featured)
+  const [thumbnail, setThumbnail] = useState(post.thumbnail || '')
+  const [uploadingThumb, setUploadingThumb] = useState(false)
+  const [thumbError, setThumbError] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingThumb(true);
+    setThumbError('');
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `blog-thumb-${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from('blog-images').upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fileName);
+      if (!urlData?.publicUrl) throw new Error('Failed to get image URL');
+      setThumbnail(urlData.publicUrl);
+    } catch (err: any) {
+      setThumbError(err.message || 'Image upload failed');
+    } finally {
+      setUploadingThumb(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -135,6 +180,7 @@ function EditBlogForm({ post, onClose }: { post: BlogPost, onClose: () => void }
       content,
       tags: tags.split(',').map((t: string) => t.trim()).filter(Boolean),
       featured,
+      thumbnail: thumbnail || DEFAULT_THUMBNAIL,
     }).eq('id', post.id)
     if (updateError) {
       setError(updateError.message)
@@ -169,13 +215,43 @@ function EditBlogForm({ post, onClose }: { post: BlogPost, onClose: () => void }
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-900">Content</label>
-        <textarea
-          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={content}
-          onChange={e => setContent(e.target.value)}
-          rows={6}
-          required
-        />
+        <MarkdownEditor value={content} onChange={setContent} />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-900 mb-1">Thumbnail (optional)</label>
+        <div className="flex flex-wrap gap-4 mb-2">
+          {THUMBNAILS.map((url) => (
+            <button
+              type="button"
+              key={url}
+              className={`border rounded-lg p-1 bg-white ${thumbnail === url ? 'ring-2 ring-blue-500' : 'hover:ring-2 hover:ring-blue-300'}`}
+              onClick={() => setThumbnail(url)}
+              aria-label="Select thumbnail"
+            >
+              <Image src={url} alt="thumbnail" width={60} height={40} className="object-contain" />
+            </button>
+          ))}
+          {/* Custom uploaded thumbnail preview */}
+          {thumbnail && !THUMBNAILS.includes(thumbnail) && (
+            <div className="border rounded-lg p-1 bg-white ring-2 ring-green-500">
+              <Image src={thumbnail} alt="Custom thumbnail" width={60} height={40} className="object-contain" />
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-2 mb-2">
+          <label htmlFor="thumb-upload-edit" className="text-sm text-blue-600 cursor-pointer hover:underline">Upload Image</label>
+          <input
+            id="thumb-upload-edit"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleThumbnailUpload}
+            disabled={uploadingThumb}
+          />
+          {uploadingThumb && <span className="text-xs text-blue-600">Uploading...</span>}
+          {thumbError && <span className="text-xs text-red-600">{thumbError}</span>}
+        </div>
+        <div className="text-xs text-gray-500">PNG, JPG, SVG. Max 2MB.</div>
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-900">Tags (comma separated)</label>
