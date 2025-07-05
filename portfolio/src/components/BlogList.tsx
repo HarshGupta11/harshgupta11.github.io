@@ -150,10 +150,9 @@ export default function BlogList({ refreshFlag }: { refreshFlag?: number }) {
                     <Image
                       src={post.thumbnail}
                       alt={post.title + ' thumbnail'}
-                      width={120}
-                      height={80}
-                      className="object-contain rounded-md border border-gray-200 bg-white"
-                      style={{ maxWidth: '100%', maxHeight: '100%' }}
+                      fill
+                      className="object-cover w-full h-full absolute top-0 left-0"
+                      style={{ borderRadius: '0.75rem 0.75rem 0 0', border: '1px solid #e5e7eb', background: 'white' }}
                     />
                   )}
                 </div>
