@@ -100,7 +100,12 @@ export default function BlogAdminActions({ onBlogCreated }: { onBlogCreated?: ()
     <>
       <button
         className="mt-6 px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition-colors"
-        onClick={() => { setEditorKey(Date.now()); setIsOpen(true); }}
+        onClick={() => { 
+          setEditorKey(Date.now()); 
+          setSuccess(''); 
+          setError(''); 
+          setIsOpen(true); 
+        }}
       >
         + Create New Blog
       </button>
