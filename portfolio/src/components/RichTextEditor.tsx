@@ -83,7 +83,7 @@ export default function RichTextEditor({ value, onChange, editable = true }: Ric
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
-      const { data, error: uploadError } = await supabase.storage.from('blog-images').upload(fileName, file, {
+      const { error: uploadError } = await supabase.storage.from('blog-images').upload(fileName, file, {
         cacheControl: '3600',
         upsert: false,
       });
@@ -91,8 +91,9 @@ export default function RichTextEditor({ value, onChange, editable = true }: Ric
       const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fileName);
       if (!urlData?.publicUrl) throw new Error('Failed to get image URL');
       editor?.chain().focus().setImage({ src: urlData.publicUrl }).run();
-    } catch (err: any) {
-      setError(err.message || 'Image upload failed');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Image upload failed';
+      setError(errorMessage);
     } finally {
       setUploading(false);
     }
@@ -118,7 +119,10 @@ export default function RichTextEditor({ value, onChange, editable = true }: Ric
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'image/*';
-        input.onchange = handleImageUpload as any;
+        input.onchange = (e) => {
+          const target = e.target as HTMLInputElement;
+          handleImageUpload({ target } as React.ChangeEvent<HTMLInputElement>);
+        };
         input.click();
         break;
       }

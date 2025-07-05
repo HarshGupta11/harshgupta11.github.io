@@ -163,8 +163,9 @@ function EditBlogForm({ post, onClose }: { post: BlogPost, onClose: () => void }
       const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fileName);
       if (!urlData?.publicUrl) throw new Error('Failed to get image URL');
       setThumbnail(urlData.publicUrl);
-    } catch (err: any) {
-      setThumbError(err.message || 'Image upload failed');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Image upload failed';
+      setThumbError(errorMessage);
     } finally {
       setUploadingThumb(false);
     }
