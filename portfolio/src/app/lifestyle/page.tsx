@@ -148,15 +148,13 @@ export default function LifestylePage() {
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {postsBySubcategory[activeTab].map(post => (
                   <article key={post.id} className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                    <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative">
+                    <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative overflow-hidden">
                       {post.thumbnail && (
                         <Image
                           src={post.thumbnail}
                           alt={post.title + ' thumbnail'}
-                          width={120}
-                          height={80}
-                          className="object-contain rounded-md border border-gray-200 bg-white"
-                          style={{ maxWidth: '100%', maxHeight: '100%' }}
+                          fill
+                          className="object-cover w-full h-full absolute top-0 left-0 rounded-t-xl border border-gray-200 bg-white"
                         />
                       )}
                     </div>

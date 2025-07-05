@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthButton from "@/components/AuthButton";
@@ -27,6 +27,7 @@ export default function FileHosterPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [refreshFlag, setRefreshFlag] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch files for the authenticated user
   useEffect(() => {
@@ -78,6 +79,7 @@ export default function FileHosterPage() {
     setUploading(false);
     setSuccess("File uploaded!");
     setRefreshFlag((f) => f + 1);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   // Handle file delete
@@ -104,8 +106,8 @@ export default function FileHosterPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">fileHoster</h1>
+      <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 py-12">
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">File Hoster</h1>
         <p className="text-gray-600 mb-8">
           Upload, view, and manage your files securely with Supabase Storage.
         </p>
@@ -115,14 +117,24 @@ export default function FileHosterPage() {
             <AuthButton />
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow p-8">
+          <div className="bg-white p-8 rounded-2xl shadow-md mt-8 w-full max-w-none overflow-x-auto px-8">
             <div className="mb-6 flex flex-col md:flex-row md:items-center gap-4">
-              <input
-                type="file"
-                onChange={handleUpload}
-                disabled={uploading}
-                className="block"
-              />
+              <label htmlFor="file-upload" className="inline-flex items-center cursor-pointer">
+                <input
+                  type="file"
+                  onChange={handleUpload}
+                  disabled={uploading}
+                  className="hidden"
+                  id="file-upload"
+                  ref={fileInputRef}
+                />
+                <span className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4M4 20h16" />
+                  </svg>
+                  Upload File
+                </span>
+              </label>
               {uploading && <span className="text-blue-600">Uploading...</span>}
               {success && <span className="text-green-600">{success}</span>}
               {error && <span className="text-red-600">{error}</span>}
@@ -131,20 +143,20 @@ export default function FileHosterPage() {
             {files.length === 0 ? (
               <div className="text-gray-500">No files uploaded yet.</div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="w-full min-w-0">
                 <table className="min-w-full border text-sm">
                   <thead>
                     <tr className="bg-gray-100">
-                      <th className="px-4 py-2 text-left">File Name</th>
-                      <th className="px-4 py-2 text-left">Size</th>
-                      <th className="px-4 py-2 text-left">Uploaded</th>
-                      <th className="px-4 py-2 text-left">Public URL</th>
+                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">File Name</th>
+                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">Size</th>
+                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">Uploaded</th>
+                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">Public URL</th>
                       <th className="px-4 py-2"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {files.map((file) => (
-                      <tr key={file.name} className="border-b">
+                      <tr key={file.name} className="border-b text-gray-900 font-medium">
                         <td className="px-4 py-2 font-mono">{file.name}</td>
                         <td className="px-4 py-2">{(file.size / 1024).toFixed(2)} KB</td>
                         <td className="px-4 py-2">{file.lastModified ? new Date(file.lastModified).toLocaleString() : "-"}</td>
