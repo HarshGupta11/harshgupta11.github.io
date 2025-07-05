@@ -38,8 +38,6 @@ export default function BlogAdminActions({ onBlogCreated }: { onBlogCreated?: ()
   const [categoryId, setCategoryId] = useState('');
   const [subcategoryId, setSubcategoryId] = useState('');
 
-  if (!isAdmin) return null
-
   useEffect(() => {
     if (isOpen) {
       // Fetch categories and subcategories from Supabase
@@ -53,6 +51,8 @@ export default function BlogAdminActions({ onBlogCreated }: { onBlogCreated?: ()
       setSubcategoryId('');
     }
   }, [isOpen]);
+
+  if (!isAdmin) return null
 
   // Filter subcategories for selected category
   const filteredSubcategories = subcategories.filter(s => s.category_id === categoryId);

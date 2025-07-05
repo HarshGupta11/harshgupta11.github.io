@@ -22,14 +22,11 @@ interface BlogPost {
   subcategory?: { id: string, name: string }
 }
 
-const POSTS_PER_PAGE = 6
-
 export default function BlogList({ refreshFlag }: { refreshFlag?: number }) {
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
-  const [page, setPage] = useState(1)
 
   useEffect(() => {
     let subscription: RealtimeChannel | null = null
@@ -74,20 +71,6 @@ export default function BlogList({ refreshFlag }: { refreshFlag?: number }) {
       (post.tags && post.tags.some(tag => tag.toLowerCase().includes(q)))
     )
   })
-
-  // Pagination
-  const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE)
-  const paginatedPosts = filteredPosts.slice((page - 1) * POSTS_PER_PAGE, page * POSTS_PER_PAGE)
-
-  const featuredPosts = paginatedPosts.filter(post => post.featured)
-  const regularPosts = paginatedPosts.filter(post => !post.featured)
-
-  const handlePrev = () => setPage(p => Math.max(1, p - 1))
-  const handleNext = () => setPage(p => Math.min(totalPages, p + 1))
-
-  useEffect(() => {
-    setPage(1)
-  }, [search])
 
   // Group posts by category
   const postsByCategory: { [cat: string]: BlogPost[] } = {}
